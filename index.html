@@ -1,0 +1,162 @@
+<meta charset=utf-8>
+<style>*{margin:0;padding:0;}table{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}body{width:756px;margin:0 auto;font-family:arial;text-align:center}#t{border-spacing:1px}td{border:1px solid;font:0/0 a}#a{width:750px;height:200px;font:22px arial}</style><br>
+<body onmouseup=m=0 onmousedown=m=1>
+<h1>Tweet Braille Art Generator</h1>
+<h2>Draw something with your mouse, and tweet it!</h2>
+<br>
+Works on Firefox & IE (Chrome for Windows can't display braille).
+<br>
+<br>
+See also: <a href=index.min.html>the golfed version</a> (< 1kb)
+<br>
+<br>
+<textarea id=a></textarea>
+<br>
+<br>
+Chars: <input id=z size=4> - <button onclick=window.open("http://twitter.com/home?status="+encodeURIComponent(r))>Tweet this</button>
+<br>
+<br>
+<table id=t></table>
+<script>
+// In a single tweet, a braille drawing can take 3.5 lines * 40 columns, 70 lines * 1 column, or anything in between.
+// Each braille character contains 8 dots (2 * 4), that are shown or hidden depending on the character used.
+// Lines end with a line break, as soon as there's nothing left to draw on the right.
+// To convert pixels in braille charCodes, we use the math described on http://en.wikipedia.org/wiki/Braille_Patterns
+// Sadly, spaces are not very accurate, here are some combinations that work a bit better
+// a0 2000
+// a0 2002
+// 2000 2005
+// 2000 2008
+// 2000 2009
+// 2000 202f
+// 2000 205f
+// ...
+
+// Reset string
+r = "";
+
+// Reset char counter
+z.value=0;
+ 
+// Mouse state
+m = 0;
+
+// Model (pixels)
+p = [];
+
+// View (HTML table)
+h="";
+for(i=0;i<99;i++){
+  h+="<tr>";
+  for(j=0;j<119;j++){
+    h+="<td width=6 height=6 onmousedown=d(this,"+i+","+j+") onmouseover=m&&d(this,"+i+","+j+") "+(j%3-2&&i%5-4?"":"style=border:none")+">&nbsp;";
+  }
+}
+t.innerHTML+=h;
+
+// draw function
+d=function(t,i,j){
+
+  // Ignore non-drawable pixels
+  if((j%3-2)&&(i%5-4)){
+  
+    // Backup cell color
+    c=(s=t.style)[b="background"];
+
+    // Make it black
+    s[b]="#000";
+    
+    // If it hasn't changed, make it white, update model
+    if(!(p[i*119+j] = s[b]!=c)){
+      s[b]="#fff";
+    }
+    
+    // Reset result
+    r = "";
+    
+    // Loop on each character
+    for(i=0;i<99;i+=5){
+      for(j=0;j<119;j+=3){
+        
+        // Compute hex charcode
+        h=0;
+        
+        // Dot 1
+        if(p[i*119+j]){
+          h+=0x1;
+        }
+        
+        // Dot 2
+        if(p[(i+1)*119+j]){
+          h+=0x2;
+        }
+        
+        // Dot 3
+        if(p[(i+2)*119+j]){
+          h+=0x4;
+        }
+        
+        // Dot 4
+        if(p[i*119+j+1]){
+          h+=0x8;
+        }
+        
+        // Dot 5
+        if(p[(i+1)*119+j+1]){
+          h+=0x10;
+        }
+        
+        // Dot 6
+        if(p[(i+2)*119+j+1]){
+          h+=0x20;
+        }
+        
+        // Dot 7
+        if(p[(i+3)*119+j]){
+          h+=0x40;
+        }
+        
+        // Dot 8
+        if(p[(i+3)*119+j+1]){
+          h+=0x80;
+        }
+        
+        // Add character to result
+        r+=h?String.fromCharCode(0x2800+h):"\u2000\u00a0";
+      }
+      
+      // Line breaks
+      r+="\n";
+    }
+    
+    // Trim spaces
+    r=r.replace(/(\u2000\u00a0)*\n/g,"\n").replace(/(\n)*$/,'');
+    
+    // Update textarea
+    a.innerHTML=r;
+    
+    // Update char counter
+    z.value=r.replace(/\u2000\u00a0/g,' ').length;
+  }
+}
+
+/* Tests
+sp="\u0020\u00A0\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2800"
+res="";
+for(i=0;i<18;i++){
+  for(j=0;j<18;j++){
+    if(j>=i){
+      res+="\n⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿\n";
+      res+="⣿⣿"+sp[i]+sp[j]+sp[i]+sp[j]+sp[i]+sp[j]+sp[i]+sp[j]+sp[i]+sp[j]+sp[i]+sp[j]+sp[i]+sp[j]+sp[i]+sp[j]+sp[i]+sp[j]+sp[i]+sp[j]+"⣿⣿ "+sp.charCodeAt(i).toString(16)+' '+sp.charCodeAt(j).toString(16);
+    }
+  }
+}
+console.log(res);
+*/
+</script>
+<a href=//github.com/xem/chip8><img style="position:absolute;top:0;right:0;border:0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"></a>
+<br>
+<br>
+© 2014 - <a href=//xem.github.io>xem</a>
+<br>
+<br>
